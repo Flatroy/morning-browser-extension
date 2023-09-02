@@ -4,7 +4,8 @@
     "build": "vite build",
     "dev": "vite",
     "lint": "eslint . --fix --ext js,mjs,cjs,ts,mts,cts,vue",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prettier": "prettier --write ."
   },
   "type": "module",
   "version": "0.0.2",
