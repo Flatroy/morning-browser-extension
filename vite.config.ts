@@ -44,7 +44,15 @@ export default defineConfig({
     }),
 
     AutoImport({
-      imports: ['vue', 'vue-router', 'vue/macros', '@vueuse/core'],
+      imports: [
+        'vue',
+        'vue-router',
+        'vue/macros',
+        '@vueuse/core',
+        {
+          'webextension-polyfill': [['*', 'browser']],
+        },
+      ],
       dts: 'src/auto-imports.d.ts',
       dirs: ['src/composables/'],
     }),
@@ -98,7 +106,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['vue', '@vueuse/core'],
+    include: ['vue', '@vueuse/core', 'webextension-polyfill'],
     exclude: ['vue-demi'],
   },
 })

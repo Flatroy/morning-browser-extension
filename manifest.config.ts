@@ -11,24 +11,26 @@ const [major, minor, patch, label = '0'] = version
   .split(/[.-]/)
 
 export default defineManifest(async (env) => ({
+  default_locale: 'en',
   name: env.mode === 'staging' ? `[INTERNAL] ${name}` : displayName || name,
   description,
   // up to four numbers separated by dots
   version: `${major}.${minor}.${patch}.${label}`,
   // semver is OK in "version_name"
+  // key: "neoglgnpcfibllajepnhdoideljlioaf",
   version_name: version,
-  author: "Daneke George",
+  author: 'Daneke George',
   manifest_version: 3,
   action: {
     default_popup: 'src/popup/index.html',
-    default_title: "Morning (Greeninvoice)",
-    default_icon: "src/assets/morning.png"
+    default_title: 'Morning (Greeninvoice)',
+    default_icon: 'src/assets/morning.png',
   },
-  "icons": {
-    "48": "src/assets/morning-48.png",
-    "96": "src/assets/morning-96.png",
-    "128": "src/assets/morning-128.png",
-    "512": "src/assets/morning.png"
+  icons: {
+    '48': 'src/assets/morning-48.png',
+    '96': 'src/assets/morning-96.png',
+    '128': 'src/assets/morning-128.png',
+    '512': 'src/assets/morning.png',
   },
   // background: {
   //   service_worker: 'src/background/index.ts',
@@ -48,9 +50,9 @@ export default defineManifest(async (env) => ({
   options_page: 'src/options/index.html',
   permissions: ['storage'],
   content_security_policy: {
-    extension_pages: "script-src 'self'; object-src 'self'"
-  }
-  
+    extension_pages: "script-src 'self'; object-src 'self'",
+  },
+
   // permissions: ['storage', 'activeTab', 'identity'],
   // web_accessible_resources: [
   //   {

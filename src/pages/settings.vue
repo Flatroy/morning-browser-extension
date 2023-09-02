@@ -4,30 +4,51 @@
       <div class="mb-4">
         <h2 class="text-lg leading-6 font-medium text-gray-900">Login</h2>
         <p class="mt-1 text-base text-gray-500">
-          To use this extension, you need to login with your <a
-            href="https://app.greeninvoice.co.il/settings/developers/api" target="_blank" class="underline ">Morning API
-          Token and API Secret</a>. Create and enter them below and click Save.
+          To use this extension, you need to login with your
+          <a
+            href="https://app.greeninvoice.co.il/settings/developers/api"
+            target="_blank"
+            class="underline"
+          >
+            Morning API Token and API Secret
+          </a>
+          . Create and enter them below and click Save.
         </p>
       </div>
 
       <form>
-        <label for="apiId" class="block text-sm font-medium text-gray-700">Api Token (מפתח)</label>
+        <label
+          for="apiId"
+          class="block text-sm font-medium text-gray-700"
+        >
+          Api Token (מפתח)
+        </label>
         <div class="my-1">
           <input
-              id="apiId" v-model="apiId" type="text"
-              name="apiId"
-              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-              placeholder=""/>
+            id="apiId"
+            v-model="apiId"
+            type="text"
+            name="apiId"
+            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+            placeholder=""
+          />
         </div>
 
-
-        <label for="token" class="block text-sm font-medium text-gray-700">Api Secret (סוד)</label>
+        <label
+          for="token"
+          class="block text-sm font-medium text-gray-700"
+        >
+          Api Secret (סוד)
+        </label>
         <div class="my-1">
           <input
-              id="token" v-model="apiToken" type="text"
-              name="token"
-              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-              placeholder=""/>
+            id="token"
+            v-model="apiToken"
+            type="text"
+            name="token"
+            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+            placeholder=""
+          />
         </div>
       </form>
       <!--      <br>-->
@@ -35,17 +56,21 @@
       <!--      tempApiToken:-->
       <!--      {{ tempApiToken }}-->
     </div>
-    <div class="py-4 px-4 flex justify-end ">
-      <button v-if="!isPage"
-              type="button"
-              class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-morning-500"
-              @click="$router.back">
+    <div class="py-4 px-4 flex justify-end">
+      <button
+        v-if="!isPage"
+        type="button"
+        class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-morning-500"
+        @click="$router.back"
+      >
         Go Back
       </button>
       <button
-          :disabled="buttonDisabled" type="button"
-          class="ml-5 bg-morning-500 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-morning-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-morning-500"
-          @click="save">
+        :disabled="buttonDisabled"
+        type="button"
+        class="ml-5 bg-morning-500 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-morning-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-morning-500"
+        @click="save"
+      >
         Save
       </button>
     </div>
@@ -53,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import {useFetch} from '@vueuse/core'
+import { useFetch } from '@vueuse/core'
 
 const status = ref('Not connected')
 const apiToken = ref('')
@@ -62,13 +87,13 @@ const tempApiToken = ref('')
 const buttonDisabled = ref(false)
 const router = useRouter()
 
-const apiBaseUrl = 'https://api.greeninvoice.co.il/api/v1';
+const apiBaseUrl = 'https://api.greeninvoice.co.il/api/v1'
 
 const props = defineProps({
   isPage: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 })
 
 onMounted(async () => {
@@ -83,49 +108,48 @@ onMounted(async () => {
   await chrome.storage.sync.get(['tempApiToken'], (result) => {
     tempApiToken.value = result.tempApiToken
   })
-
 })
 
 watch(apiToken, (value) => {
-  chrome.storage.sync.set({apiToken: value})
+  chrome.storage.sync.set({ apiToken: value })
 })
 
 watch(apiId, (value) => {
-  chrome.storage.sync.set({apiId: value})
+  chrome.storage.sync.set({ apiId: value })
 })
 
 async function save() {
-
-
-  const {isFetching, error, data} = await useFetch(apiBaseUrl + '/account/token', {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  }).post({
-    id: apiId.value,
-    secret: apiToken.value
-  }).json()
+  const { isFetching, error, data } = await useFetch(
+    apiBaseUrl + '/account/token',
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  )
+    .post({
+      id: apiId.value,
+      secret: apiToken.value,
+    })
+    .json()
 
   buttonDisabled.value = isFetching.value
 
   if (data.value?.token) {
-    tempApiToken.value = data.value.token;
+    tempApiToken.value = data.value.token
     try {
-
-      chrome.storage.sync.set({tempApiToken: data.value.token})
-
+      chrome.storage.sync.set({ tempApiToken: data.value.token })
     } catch (error) {
       console.log(error)
     }
     try {
-      chrome.storage.sync.set({tempApiTokenExpires: data.value.expires})
+      chrome.storage.sync.set({ tempApiTokenExpires: data.value.expires })
     } catch (error) {
       console.log(error)
     }
     status.value = 'Connected'
     // route to the next page
-    if (!props.isPage)
-      await router.push('/')
+    if (!props.isPage) await router.push('/')
     else {
       alert('Connected, you can close this tab now')
       /*chrome.tabs.query({active:true,currentWindow:true},function(tabs){
@@ -141,9 +165,7 @@ async function save() {
     // }
     // status.value = 'Error. Check your token'
   }
-
 }
-
 </script>
 
 <style scoped></style>
