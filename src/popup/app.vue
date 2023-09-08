@@ -13,6 +13,7 @@ const route = useRoute()
     <a
       href="https://app.greeninvoice.co.il/lobby/"
       target="_blank"
+      class="logo"
     >
       <svg
         class="m-0"
@@ -122,8 +123,21 @@ const route = useRoute()
     aria-label="Site Footer"
     class="text-center p-1"
   >
-    version {{ version }}
+    Version {{ version }}
   </footer>
 </template>
 
-<style scoped></style>
+<style scoped>
+.logo {
+  will-change: filter;
+  transition: filter 200ms;
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 3em #18534e);
+}
+
+.logo.vue:hover {
+  filter: drop-shadow(0 0 3em #18534e);
+}
+</style>

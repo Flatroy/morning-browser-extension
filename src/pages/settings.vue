@@ -51,10 +51,6 @@
           />
         </div>
       </form>
-      <!--      <br>-->
-      <!--      Status: {{ status }}-->
-      <!--      tempApiToken:-->
-      <!--      {{ tempApiToken }}-->
     </div>
     <div class="py-4 px-4 flex justify-end">
       <button
@@ -78,16 +74,17 @@
 </template>
 
 <script setup lang="ts">
-import { useFetch } from '@vueuse/core'
+import { API_URL } from '~/utils/api'
+import {
+  apiToken,
+  apiId,
+  tempApiToken,
+  tempApiTokenExpires,
+} from '~/logic/storage'
 
 const status = ref('Not connected')
-const apiToken = ref('')
-const apiId = ref('')
-const tempApiToken = ref('')
 const buttonDisabled = ref(false)
 const router = useRouter()
-
-const apiBaseUrl = 'https://api.greeninvoice.co.il/api/v1'
 
 const props = defineProps({
   isPage: {
@@ -96,57 +93,28 @@ const props = defineProps({
   },
 })
 
-onMounted(async () => {
-  await chrome.storage.sync.get(['apiToken'], (result) => {
-    apiToken.value = result.apiToken
-  })
-
-  await chrome.storage.sync.get(['apiId'], (result) => {
-    apiId.value = result.apiId
-  })
-
-  await chrome.storage.sync.get(['tempApiToken'], (result) => {
-    tempApiToken.value = result.tempApiToken
-  })
-})
-
-watch(apiToken, (value) => {
-  chrome.storage.sync.set({ apiToken: value })
-})
-
-watch(apiId, (value) => {
-  chrome.storage.sync.set({ apiId: value })
-})
-
 async function save() {
-  const { isFetching, error, data } = await useFetch(
-    apiBaseUrl + '/account/token',
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
-  )
-    .post({
+  if (!apiId.value || !apiToken.value) {
+    alert('Please enter your API Token and API Secret')
+    return
+  }
+  buttonDisabled.value = true
+  const res = await fetch(`${API_URL}/account/token`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
       id: apiId.value,
       secret: apiToken.value,
-    })
-    .json()
+    }),
+  })
+  buttonDisabled.value = false
+  let data = await res?.json()
 
-  buttonDisabled.value = isFetching.value
-
-  if (data.value?.token) {
-    tempApiToken.value = data.value.token
-    try {
-      chrome.storage.sync.set({ tempApiToken: data.value.token })
-    } catch (error) {
-      console.log(error)
-    }
-    try {
-      chrome.storage.sync.set({ tempApiTokenExpires: data.value.expires })
-    } catch (error) {
-      console.log(error)
-    }
+  if (data?.token) {
+    tempApiToken.value = data?.token
+    tempApiTokenExpires.value = data?.expires
     status.value = 'Connected'
     // route to the next page
     if (!props.isPage) await router.push('/')
@@ -157,13 +125,11 @@ async function save() {
       });*/
     }
   } else {
-    if (error.value) {
-      alert(error.value + ' Check your token and try again')
+    if (data?.errorMessage) {
+      alert('Check your token and try again. Error: ' + data?.errorMessage)
+    } else {
+      alert('Something went wrong, try again')
     }
-    // status.value = 'Error. Check your token'
-    // return
-    // }
-    // status.value = 'Error. Check your token'
   }
 }
 </script>

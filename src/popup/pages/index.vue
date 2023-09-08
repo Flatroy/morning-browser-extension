@@ -6,139 +6,80 @@ import {
   DotsHorizontalIcon,
 } from '@heroicons/vue/solid'
 import { useDropZone } from '@vueuse/core'
-import { useFetch } from '@vueuse/core/index'
+import { API_URL, createToken } from '~/utils/api'
 
-const apiBaseUrl = 'https://api.greeninvoice.co.il/api/v1'
-const tempApiToken = ref('')
-const tempApiTokenExpires = ref('')
+import {
+  apiToken,
+  apiId,
+  tempApiToken,
+  tempApiTokenExpires,
+} from '~/logic/storage'
+
 const status = ref('')
+const statusMessage = ref('')
 
 const dropZoneRef = ref<HTMLDivElement>()
 const { isOverDropZone, files } = useDropZone(dropZoneRef, onDrop)
 
-onMounted(async () => {
-  const data = await chrome.storage.sync.get(['tempApiToken'], (result) => {
-    tempApiToken.value = result.tempApiToken || ''
-  })
-  tempApiToken.value = data?.tempApiToken
-  await chrome.storage.sync.get(['tempApiTokenExpires'], (result) => {
-    tempApiTokenExpires.value = result.tempApiTokenExpires || ''
-  })
-  await chrome.storage.sync.get(['apiToken'], (result) => {
-    if (!result.apiToken) {
-      chrome.tabs.create({ url: 'src/options/index.html' })
-    }
-  })
-
-  if (
-    !tempApiToken.value ||
-    !tempApiTokenExpires.value ||
-    Date.now() >= tempApiTokenExpires * 1000
-  ) {
-    await updateToken()
-  }
-})
-
 function sendFiles() {
   status.value = 'Uploading...'
-  Array.from(files.value).forEach((file) => {
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
-    reader.onload = () => {
-      console.log(reader.result)
-      sendFileToApi(reader.result)
-    }
-  })
+  if (files.value) {
+    Array.from([...files.value]).forEach((file: File) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => {
+        console.log(reader.result)
+        if (reader.result) sendFileToApi(reader.result.toString())
+      }
+    })
 
-  files.value = null
+    files.value = null
+  }
 }
 
 // function onDrop(files: File[] | null) {
 function onDrop() {
-  // transform to base64 all files
-}
-
-async function updateToken() {
-  // const userApiToken = await chrome.storage.sync.get(['apiToken'], (result) => {
-  //   console.log(result.apiToken)
-
-  //   return result.apiToken || ''
-  // })
-  // console.log(userApiToken)
-
-  const userApiToken = await new Promise((resolve) => {
-    chrome.storage.sync.get(['apiToken'], (result) => {
-      console.log(result.apiToken)
-      resolve(result.apiToken || '')
-    })
-  })
-
-  const apiId = await new Promise((resolve) => {
-    chrome.storage.sync.get(['apiId'], (result) => {
-      resolve(result.apiId || '')
-    })
-  })
-  console.log(userApiToken, apiId)
-  if (!apiId || !userApiToken) {
-    return
-  }
-
-  const { error, data } = await useFetch(apiBaseUrl + '/account/token', {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-    .post({
-      id: apiId,
-      secret: userApiToken,
-    })
-    .json()
-
-  if (data.value?.token) {
-    tempApiToken.value = data.value.token
-
-    chrome.storage.sync.set({ tempApiToken: data.value.token })
-    chrome.storage.sync.set({ tempApiTokenExpires: data.value.expires })
-  } else {
-    if (error.value) {
-      status.value = 'Error. Check your token'
-    }
-    status.value = 'Error. Check your token'
+  if (!apiToken.value || !apiId.value) {
+    chrome.tabs.create({ url: 'src/options/index.html' })
   }
 }
 
-function sendFileToApi(file) {
-  if (Date.now() >= tempApiTokenExpires * 1000) {
-    updateToken()
+async function sendFileToApi(file: string) {
+  if (Date.now() >= Number(tempApiTokenExpires.value) * 1000) {
+    await createToken()
   }
-  useFetch(apiBaseUrl + '/expenses/file', {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${tempApiToken.value}`,
-    },
-  })
-    .post({
-      file,
+  statusMessage.value = ''
+  try {
+    const res = await fetch(`${API_URL}/expenses/file`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${tempApiToken.value}`,
+      },
+      body: JSON.stringify({
+        file,
+      }),
     })
-    .json()
-    .then((response) => {
-      if (response.statusCode.value !== 201) {
-        console.log(response.data.errorCode)
-        status.value = 'Error!'
-        return
+    let data = await res?.json()
+    if (res?.status === 201) {
+      console.log(data)
+      status.value = 'Success!'
+    } else {
+      console.log(data)
+      status.value = 'Error!'
+      if (data?.errorMessage) {
+        statusMessage.value = data?.errorMessage
       } else {
-        status.value = 'Success!'
+        statusMessage.value = 'Try again later.'
       }
-    })
-    .catch((error) => {
-      status.value = 'Error! ' + error.data.errorMessage
-    })
+    }
+  } catch (error) {
+    console.error(error)
+  }
 }
 </script>
-
 <template>
   <div class="m-4">
-    <!--    <h1 class="text-3xl font-bold underline pb-6">Hello world from Popup!</h1>-->
     {{
       Date.now() >= tempApiTokenExpires * 1000 ? 'Error! Token expired!' : ''
     }}
@@ -172,6 +113,9 @@ function sendFileToApi(file) {
               :class="status === 'Success!' ? 'text-green-800' : 'text-red-800'"
             >
               {{ status }}
+              <template v-if="statusMessage">
+                {{ statusMessage }}
+              </template>
             </p>
           </div>
           <div class="ml-auto pl-3">
@@ -184,7 +128,7 @@ function sendFileToApi(file) {
                     : 'text-red-500 bg-red-50 hover:bg-red-100 focus:ring-offset-red-50 focus:ring-red-600'
                 "
                 class="inline-flex rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-offset-2"
-                @click="status = false"
+                @click="status = ''"
               >
                 <span class="sr-only">Dismiss</span>
                 <XIcon
@@ -220,12 +164,6 @@ function sendFileToApi(file) {
         <div class="flex text-sm text-gray-600">
           <div>
             <div>
-              <!--            <label for="file-upload"-->
-              <!--                   class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">-->
-              <!--              <span>Upload a file</span>-->
-              <!--              <input id="file-upload" @change="inputChange" name="file-upload" type="file" class="sr-only">-->
-              <!--            </label>-->
-              <!--            or-->
               <div v-if="isOverDropZone">Drop it!</div>
 
               <div
@@ -236,7 +174,7 @@ function sendFileToApi(file) {
               </div>
             </div>
             <div class="text-xs text-gray-500">
-              GIF, PNG, JPG, SVG, PDF up to 10MB
+              GIF, PNG, JPG, PDF up to 10MB
             </div>
           </div>
         </div>
@@ -268,29 +206,7 @@ function sendFileToApi(file) {
         </button>
       </div>
     </template>
-    <!--    <div class="mt-4">
-    
-          <RouterLink to="/settings"
-                      class="bg-morning-500 border border-transparent rounded-md shadow-sm py-1 px-2 inline-flex justify-center text-sm font-medium text-white hover:bg-morning-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-morning-500">
-            Settings
-          </RouterLink>
-        </div>-->
   </div>
 </template>
 
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
-}
-</style>
+<style scoped></style>
