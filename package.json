@@ -8,16 +8,14 @@
     "prettier": "prettier --write ."
   },
   "type": "module",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "displayName": "Morning (חשבונית ירוקה) Expense Tracker",
   "name": "morning-greeninvoice-expense-tracker",
   "description": "Extension to upload receipts to automatically create Expense draft entries on Morning (ex Greeninvoice)",
-  "dependencies": {
+  "devDependencies": {
     "@heroicons/vue": "1.0.6",
     "vue": "^3.3.4",
-    "vue-router": "^4.2.4"
-  },
-  "devDependencies": {
+    "vue-router": "^4.2.4",
     "@crxjs/vite-plugin": "^2.0.0-beta.18",
     "@iconify-json/mdi": "^1.1.54",
     "@tailwindcss/forms": "^0.5.5",

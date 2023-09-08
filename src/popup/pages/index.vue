@@ -29,22 +29,13 @@ onMounted(async () => {
       chrome.tabs.create({ url: 'src/options/index.html' })
     }
   })
-  // console.log(tempApiToken.value, tempApiTokenExpires.value)
-  // if (!tempApiToken.value || !tempApiTokenExpires.value || Date.now() >= tempApiTokenExpires * 1000) {
-  //   await updateToken()
-  // }
-})
-watch(tempApiToken, async () => {
-  if (chrome.storage.sync.get(['apiToken']).apiToken) {
-    await updateToken()
-  }
-})
 
-watch(tempApiTokenExpires, async () => {
-  if (chrome.storage.sync.get(['apiToken']).apiToken) {
-    if (Date.now() >= tempApiTokenExpires * 1000) {
-      await updateToken()
-    }
+  if (
+    !tempApiToken.value ||
+    !tempApiTokenExpires.value ||
+    Date.now() >= tempApiTokenExpires * 1000
+  ) {
+    await updateToken()
   }
 })
 
@@ -68,14 +59,29 @@ function onDrop() {
 }
 
 async function updateToken() {
-  const userApiToken = ref('')
-  await chrome.storage.sync.get(['apiToken'], (result) => {
-    userApiToken.value = result.apiToken || ''
+  // const userApiToken = await chrome.storage.sync.get(['apiToken'], (result) => {
+  //   console.log(result.apiToken)
+
+  //   return result.apiToken || ''
+  // })
+  // console.log(userApiToken)
+
+  const userApiToken = await new Promise((resolve) => {
+    chrome.storage.sync.get(['apiToken'], (result) => {
+      console.log(result.apiToken)
+      resolve(result.apiToken || '')
+    })
   })
-  const apiId = ref('')
-  await chrome.storage.sync.get(['apiId'], (result) => {
-    apiId.value = result.apiId || ''
+
+  const apiId = await new Promise((resolve) => {
+    chrome.storage.sync.get(['apiId'], (result) => {
+      resolve(result.apiId || '')
+    })
   })
+  console.log(userApiToken, apiId)
+  if (!apiId || !userApiToken) {
+    return
+  }
 
   const { error, data } = await useFetch(apiBaseUrl + '/account/token', {
     headers: {
@@ -83,8 +89,8 @@ async function updateToken() {
     },
   })
     .post({
-      id: apiId.value,
-      secret: userApiToken.value,
+      id: apiId,
+      secret: userApiToken,
     })
     .json()
 

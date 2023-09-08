@@ -5,6 +5,7 @@ import type {
   StorageLikeAsync,
   UseStorageAsyncOptions,
 } from '@vueuse/core'
+
 import { useStorageAsync } from '@vueuse/core'
 
 const storageLocal: StorageLikeAsync = {
