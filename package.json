@@ -8,7 +8,7 @@
     "prettier": "prettier --write ."
   },
   "type": "module",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "displayName": "Morning (חשבונית ירוקה) Expense Tracker",
   "name": "morning-greeninvoice-expense-tracker",
   "description": "Extension to upload receipts to automatically create Expense draft entries on Morning (ex Greeninvoice)",

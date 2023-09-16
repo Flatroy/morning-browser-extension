@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import packageJson from './../../package.json'
+import { CogIcon } from '@heroicons/vue/solid'
 
 const { version } = packageJson
 const route = useRoute()
@@ -111,9 +112,13 @@ const route = useRoute()
     <RouterLink
       v-if="route?.path !== '/settings'"
       to="/settings"
-      class="mt-2 mr-2 bg-morning-500 border border-transparent rounded-md shadow-sm py-1 px-2 inline-flex justify-center text-sm font-medium text-white hover:bg-morning-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-morning-500"
+      class="mt-2 mr-2 bg-morning-500 border border-transparent rounded-md shadow-sm py-1 px-2 inline-flex justify-center text-sm items-center font-medium text-white hover:bg-morning-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-morning-500"
     >
-      Settings
+      <CogIcon
+        class="h-4 w-4 mr-1"
+        aria-hidden="true"
+      />
+      <span>Settings</span>
     </RouterLink>
   </header>
 

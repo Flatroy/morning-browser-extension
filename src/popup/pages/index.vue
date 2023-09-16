@@ -4,8 +4,12 @@ import {
   XIcon,
   ExclamationCircleIcon,
   DotsHorizontalIcon,
+  TrashIcon,
+  PlusIcon,
 } from '@heroicons/vue/solid'
 import { useDropZone } from '@vueuse/core'
+import { useFileDialog } from '@vueuse/core'
+
 import { API_URL, createToken } from '~/utils/api'
 
 import {
@@ -20,6 +24,13 @@ const statusMessage = ref('')
 
 const dropZoneRef = ref<HTMLDivElement>()
 const { isOverDropZone, files } = useDropZone(dropZoneRef, onDrop)
+const { onChange, open } = useFileDialog()
+
+onChange((fileList) => {
+  const fileArray: File[] | null = fileList ? Array.from(fileList) : null
+
+  files.value = fileArray
+})
 
 function sendFiles() {
   status.value = 'Uploading...'
@@ -80,10 +91,6 @@ async function sendFileToApi(file: string) {
 </script>
 <template>
   <div class="m-4">
-    {{
-      Date.now() >= tempApiTokenExpires * 1000 ? 'Error! Token expired!' : ''
-    }}
-
     <div v-if="status">
       <div
         class="rounded-md p-4 mb-4"
@@ -145,21 +152,18 @@ async function sendFileToApi(file: string) {
       ref="dropZoneRef"
       class="w-full text-center flex justify-center items-center max-w-lg px-6 pt-5 pb-6 border-2 border-dashed rounded-md"
       :class="isOverDropZone ? 'border-gray-500' : 'border-gray-300'"
+      @click="open"
     >
       <div class="space-y-1 text-center">
         <svg
           class="mx-auto h-12 w-12 text-gray-400"
-          stroke="currentColor"
-          fill="none"
-          viewBox="0 0 48 48"
-          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 -960 960 960"
         >
           <path
-            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          ></path>
+            fill="currentColor"
+            d="M465.846-250.461h30.769v-203.308l92 92.769 22.001-22L480-511.923 350.615-381.769l21.231 21.231 94-93.231v203.308ZM255.384-120q-23.057 0-39.221-16.163Q200-152.327 200-175.384v-609.232q0-23.057 16.163-39.221Q232.327-840 255.384-840h334.077L760-669.461v494.077q0 23.057-16.163 39.221Q727.673-120 704.616-120H255.384Zm318.693-535.538v-153.693H255.384q-9.23 0-16.923 7.692-7.692 7.693-7.692 16.923v609.232q0 9.23 7.692 16.923 7.693 7.692 16.923 7.692h449.232q9.23 0 16.923-7.692 7.692-7.693 7.692-16.923v-480.154H574.077ZM230.769-809.231v153.693-153.693 658.462-658.462Z"
+          />
         </svg>
         <div class="flex text-sm text-gray-600">
           <div>
@@ -189,19 +193,27 @@ async function sendFileToApi(file: string) {
         <li>{{ file.name }}</li>
       </ul>
 
-      <div class="mt-4 py-4 px-4 flex justify-end">
+      <div class="mt-4 py-4 flex justify-end">
         <button
           type="button"
-          class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-morning-500"
+          class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-morning-500 items-center"
           @click="files = null"
         >
+          <TrashIcon
+            class="-ml-1 mr-2 h-5 w-5"
+            aria-hidden="true"
+          />
           Clear
         </button>
         <button
           type="button"
-          class="ml-5 bg-morning-500 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-morning-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-morning-500"
+          class="ml-5 bg-morning-500 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-morning-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-morning-500 items-center"
           @click="sendFiles()"
         >
+          <PlusIcon
+            class="-ml-1 mr-2 h-5 w-5"
+            aria-hidden="true"
+          />
           Add Expenses to Drafts
         </button>
       </div>

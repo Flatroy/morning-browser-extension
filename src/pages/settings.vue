@@ -10,9 +10,9 @@
             target="_blank"
             class="underline"
           >
-            Morning API Token and API Secret
+            Morning API Token and API Secret.
           </a>
-          . Create and enter them below and click Save.
+          Create and enter them below and click Save.
         </p>
       </div>
 
