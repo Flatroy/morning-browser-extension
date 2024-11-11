@@ -46,7 +46,12 @@ export default defineManifest(async (env) => ({
   // allow extensions to send requests to api.greeninvoice.co.il
   // content_security_policy: "script-src 'self' https://api.greeninvoice.co.il; object-src 'self'",
   // host_permissions: ['*://*/*'],
-  host_permissions: ['https://api.greeninvoice.co.il/*'],
+  host_permissions: [
+    'https://api.greeninvoice.co.il/*',
+    'https://apigw.greeninvoice.co.il/*',
+    'https://s3.eu-west-1.amazonaws.com/file-upload-service-uploaded',
+    'https://*.*.amazonaws.com/*',
+  ],
   options_page: 'src/options/index.html',
   permissions: ['storage'],
   content_security_policy: {

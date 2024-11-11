@@ -37,10 +37,13 @@ function sendFiles() {
   if (files.value) {
     Array.from([...files.value]).forEach((file: File) => {
       const reader = new FileReader()
-      reader.readAsDataURL(file)
+      reader.readAsArrayBuffer(file)
       reader.onload = () => {
-        console.log(reader.result)
-        if (reader.result) sendFileToApi(reader.result.toString())
+        if (reader.result) {
+          setTimeout(function () {
+            sendFileToApi(reader.result as File)
+          }, 2000)
+        }
       }
     })
 
@@ -55,37 +58,56 @@ function onDrop() {
   }
 }
 
-async function sendFileToApi(file: string) {
+async function sendFileToApi(file: File) {
   if (Date.now() >= Number(tempApiTokenExpires.value) * 1000) {
     await createToken()
   }
   statusMessage.value = ''
   try {
-    const res = await fetch(`${API_URL}/expenses/file`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${tempApiToken.value}`,
-      },
-      body: JSON.stringify({
-        file,
-      }),
-    })
-    let data = await res?.json()
-    if (res?.status === 201) {
-      console.log(data)
-      status.value = 'Success!'
-    } else {
+    // Step 1: Get the file upload URL
+    const res = await fetch(
+      `https://apigw.greeninvoice.co.il/file-upload/v1/url?context=expense&data=%7B%22source%22:5%7D`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${tempApiToken.value}`,
+        },
+      }
+    )
+    const data = await res.json()
+    if (!res.ok) {
+      // Handle error
       console.log(data)
       status.value = 'Error!'
-      if (data?.errorMessage) {
-        statusMessage.value = data?.errorMessage
-      } else {
-        statusMessage.value = 'Try again later.'
-      }
+      statusMessage.value = data?.errorMessage || 'Failed to get upload URL.'
+      return
+    }
+    const presignedPost = data // Should contain 'url' and 'fields'
+
+    // Step 2: Create FormData and upload the file
+    const formData = new FormData()
+    Object.entries(presignedPost.fields).forEach(([key, value]) => {
+      formData.append(key, value as string)
+    })
+
+    formData.append('file', new Blob([file]), file.name)
+    console.log(file.name)
+
+    const uploadRes = await fetch(presignedPost.url, {
+      method: 'POST',
+      body: formData,
+    })
+    if (uploadRes.ok) {
+      status.value = 'Success!'
+    } else {
+      status.value = 'Error!'
+      const uploadData = await uploadRes.json()
+      statusMessage.value = uploadData?.errorMessage || 'File upload failed.'
     }
   } catch (error) {
     console.error(error)
+    status.value = 'Error!'
+    statusMessage.value = 'An error occurred.'
   }
 }
 </script>

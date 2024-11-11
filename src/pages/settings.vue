@@ -4,15 +4,15 @@
       <div class="mb-4">
         <h2 class="text-lg leading-6 font-medium text-gray-900">Login</h2>
         <p class="mt-1 text-base text-gray-500">
-          To use this extension, you need to login with your
+          To use this extension, you need to add your
           <a
             href="https://app.greeninvoice.co.il/settings/developers/api"
             target="_blank"
             class="underline"
           >
-            Morning API Token and API Secret.
+            Morning API Token and Secret.
           </a>
-          Create and enter them below and click Save.
+          &nbsp;Create and enter them below and click Save.
         </p>
       </div>
 
