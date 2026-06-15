@@ -50,6 +50,11 @@
     "@crxjs/vite-plugin": "$@crxjs/vite-plugin"
   },
   "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "esbuild",
+      "vue-demi"
+    ],
     "overrides": {},
     "peerDependencyRules": {
       "allowAny": [],
