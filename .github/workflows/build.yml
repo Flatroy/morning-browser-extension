@@ -17,6 +17,6 @@ jobs:
           node-version: 22
           cache: 'pnpm'
 
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile --allow-build=@parcel/watcher --allow-build=esbuild --allow-build=vue-demi
       - run: pnpm run lint
       - run: pnpm run build
