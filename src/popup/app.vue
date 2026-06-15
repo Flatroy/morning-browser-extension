@@ -126,9 +126,17 @@ const route = useRoute()
 
   <footer
     aria-label="Site Footer"
-    class="text-center p-1"
+    class="text-center p-1 text-xs text-gray-500"
   >
     Version {{ version }}
+    <span class="mx-1">·</span>
+    <a
+      href="https://github.com/Flatroy/morning-browser-extension"
+      target="_blank"
+      class="underline hover:text-gray-700"
+    >
+      Open source
+    </a>
   </footer>
 </template>
 

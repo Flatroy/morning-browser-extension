@@ -10,9 +10,9 @@
             target="_blank"
             class="underline"
           >
-            Morning API Token and Secret.
+            Morning API Token and Secret
           </a>
-          &nbsp;Create and enter them below and click Save.
+          . &nbsp;Create and enter them below and click Save.
         </p>
       </div>
 
@@ -40,15 +40,29 @@
         >
           Api Secret (סוד)
         </label>
-        <div class="my-1">
+        <div class="my-1 relative">
           <input
             id="token"
             v-model="apiToken"
-            type="text"
+            :type="showSecret ? 'text' : 'password'"
             name="token"
-            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md pr-10"
             placeholder=""
           />
+          <button
+            type="button"
+            class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+            @click="showSecret = !showSecret"
+          >
+            <EyeIcon
+              v-if="showSecret"
+              class="h-4 w-4"
+            />
+            <EyeOffIcon
+              v-else
+              class="h-4 w-4"
+            />
+          </button>
         </div>
       </form>
     </div>
@@ -74,16 +88,13 @@
 </template>
 
 <script setup lang="ts">
-import { API_URL } from '~/utils/api'
-import {
-  apiToken,
-  apiId,
-  tempApiToken,
-  tempApiTokenExpires,
-} from '~/logic/storage'
+import { EyeIcon, EyeOffIcon } from '@heroicons/vue/solid'
+import { createToken } from '~/utils/api'
+import { apiToken, apiId } from '~/logic/storage'
 
 const status = ref('Not connected')
 const buttonDisabled = ref(false)
+const showSecret = ref(false)
 const router = useRouter()
 
 const props = defineProps({
@@ -99,36 +110,14 @@ async function save() {
     return
   }
   buttonDisabled.value = true
-  const res = await fetch(`${API_URL}/account/token`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      id: apiId.value,
-      secret: apiToken.value,
-    }),
-  })
+  const success = await createToken()
   buttonDisabled.value = false
-  let data = await res?.json()
 
-  if (data?.token) {
-    tempApiToken.value = data?.token
-    tempApiTokenExpires.value = data?.expires
+  if (success) {
     status.value = 'Connected'
-    // route to the next page
     if (!props.isPage) await router.push('/')
     else {
       alert('Connected, you can close this tab now')
-      /*chrome.tabs.query({active:true,currentWindow:true},function(tabs){
-        chrome.tabs.remove(tabs[0].id);
-      });*/
-    }
-  } else {
-    if (data?.errorMessage) {
-      alert('Check your token and try again. Error: ' + data?.errorMessage)
-    } else {
-      alert('Something went wrong, try again')
     }
   }
 }

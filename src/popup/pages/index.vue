@@ -10,7 +10,7 @@ import {
 import { useDropZone } from '@vueuse/core'
 import { useFileDialog } from '@vueuse/core'
 
-import { API_URL, createToken } from '~/utils/api'
+import { createToken } from '~/utils/api'
 
 import {
   apiToken,
@@ -76,8 +76,6 @@ async function sendFileToApi(file: File) {
     )
     const data = await res.json()
     if (!res.ok) {
-      // Handle error
-      console.log(data)
       status.value = 'Error!'
       statusMessage.value = data?.errorMessage || 'Failed to get upload URL.'
       return
@@ -91,7 +89,6 @@ async function sendFileToApi(file: File) {
     })
 
     formData.append('file', new Blob([file]), file.name)
-    console.log(file.name)
 
     const uploadRes = await fetch(presignedPost.url, {
       method: 'POST',
@@ -104,8 +101,7 @@ async function sendFileToApi(file: File) {
       const uploadData = await uploadRes.json()
       statusMessage.value = uploadData?.errorMessage || 'File upload failed.'
     }
-  } catch (error) {
-    console.error(error)
+  } catch {
     status.value = 'Error!'
     statusMessage.value = 'An error occurred.'
   }
