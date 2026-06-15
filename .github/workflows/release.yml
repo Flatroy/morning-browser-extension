@@ -27,14 +27,14 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
         with:
           version: latest
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
           cache: 'pnpm'
 
       - run: pnpm install --frozen-lockfile
@@ -43,7 +43,7 @@ jobs:
 
       - name: Get Package Version
         id: get-version
-        run: echo "::set-output name=version::$(node -p "require('./package.json').version")"
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
       - run: pnpm run build
       - run: zip -r ${{ steps.get-version.outputs.version }}.zip dist
